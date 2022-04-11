@@ -1,0 +1,72 @@
+module RoleIdData where
+
+data CSDRoleId = CSDRoleId
+    with
+        csd: Party
+        operator: Party
+    deriving (Eq, Show)
+
+data BookRunnerDARoleeId = BookRunnerDARoleeId
+    with
+        bookrunnerDA: Party
+        operator: Party
+    deriving (Eq, Show)
+
+data BookRunnerRoleId = BookRunnerRoleId
+    with
+        bookRunner: Party
+        operator: Party
+    deriving (Eq, Show)
+
+data InvestmentManagerDARoleId = InvestmentManagerDARoleId
+    with
+        investmentManager: Party
+        operator: Party
+    deriving (Eq, Show)
+
+data InvestmentManagerRoleId = InvestmentManagerRoleId
+    with
+        investmentManager: Party
+        operator: Party
+    deriving (Eq, Show)
+
+data InvestmentManagerSERoleId = InvestmentManagerSERoleId
+    with
+        investmentManagerSE: Party
+        operator: Party
+    deriving (Eq, Show)
+
+data IssuerRoleId = IssuerRoleId
+    with
+        issuer: Party
+        operator: Party
+    deriving (Eq, Show)
+
+data IssuerServiceRoleId = IssuerServiceRoleId
+    with
+        issuerService: Party
+        operator: Party
+    deriving (Eq, Show)
+
+data LegalCounselRoleId = LegalCounselRoleId
+    with
+        legalCounsel: Party
+        operator: Party
+    deriving (Eq, Show)
+
+data OperatorRoleId = OperatorRoleId
+    with
+        operator: Party
+    deriving (Eq, Show)
+
+data RegCoRoleId = RegCoRoleId
+    with
+        regCo: Party
+        operator: Party
+    deriving (Eq, Show)
+
+data SettlementBankRoleId = SettlementBankRoleId
+    with
+        settlementBank: Party
+        operator: Party
+    deriving (Eq, Show)

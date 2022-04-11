@@ -1,0 +1,68 @@
+module LegalCounselRole where
+
+import RoleIdData
+
+template LegalCounselRole
+    with
+        id: LegalCounselRoleId
+        legalCounsel: Party
+        operator: Party
+        regulators: [Party]
+        issuer: IssuerRoleId
+        csd: CSDRoleId
+    where
+        signatory legalCounsel, operator
+        observer regulators
+
+        key (operator, id): (Party, LegalCounselRoleId)
+        maintainer key._1
+
+        choice LegalCounselRole_Resign: ()
+            controller legalCounsel 
+                do
+                    return ()
+        
+        choice LegalCounselRole_Revoke: ()
+            controller operator
+                do
+                    return ()
+
+template LegalCounselRoleInvitation
+    with
+        legalCounsel: Party
+        operator: Party
+        regulators: [Party]
+        issuer: Party
+        csd: Party
+    where
+        signatory operator
+        observer regulators
+
+        choice LegalCounselRoleInvitation_Accept: ContractId LegalCounselRole
+            with
+                invId: LegalCounselRoleId
+                invIssuerServices: Party
+                invOperator: Party
+                invRegulators: [Party]
+                invIssuer: IssuerRoleId
+                invCsd: CSDRoleId
+            controller legalCounsel 
+                     do
+                        create LegalCounselRole
+                            with
+                                id = invId
+                                legalCounsel = invIssuerServices
+                                operator = invOperator
+                                regulators = invRegulators
+                                issuer = invIssuer
+                                csd = invCsd
+        
+        choice IssuerServicesRoleInvitation_Reject: ()
+            controller legalCounsel
+                do
+                    return ()
+        
+        choice IssuerServicesRoleInvitation_Revoke: ()
+            controller operator
+                do
+                    return ()

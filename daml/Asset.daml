@@ -1,0 +1,40 @@
+module Asset where
+
+import Account
+
+data AssetType = AssetType_Cash_Currency | AssetType_Bond
+    deriving (Show, Eq)
+
+data Currency = Currency_SGD | Currency_USD
+    deriving (Show, Eq)
+
+data Asset =
+    Asset with
+        assetType: AssetType
+        quantity: Decimal
+        currency: Optional Currency   
+            deriving (Show, Eq)
+
+template AssetDeposit 
+    with
+        account: Account
+        asset: Asset
+        observers: [Party]
+    where
+        signatory account.signatories
+        observer observers
+
+        choice AssetDeposit_Create: ContractId AssetDeposit
+            with
+                depAccount: Account 
+                depAsset: Asset
+                depObservers: [Party]
+                depCurrency: Currency
+            controller account.acccountKey.owner 
+                do
+                    create AssetDeposit 
+                        with 
+                            account = depAccount
+                            asset = depAsset
+                            observers = depObservers
+                            

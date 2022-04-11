@@ -1,0 +1,65 @@
+module Participant where
+
+data LegalName = LegalName with
+    value: Text
+        deriving (Eq, Show)
+
+data Address = Address with
+    street: Text
+    city: Text
+    country: Text
+    homeNumber: Text
+    apartmentNumber: Optional Text
+        deriving (Eq, Show)
+
+template Participant 
+    with
+        participant: Party
+        legalName: LegalName
+        address: Address
+        operator: Party
+        regulators: [Party]
+    where 
+        signatory participant, operator
+        observer regulators
+
+template ParticipantInvitation 
+    with
+        participant: Party
+        legalName: LegalName
+        address: Address
+        operator: Party
+        regulators: [Party]
+
+    where
+        signatory operator
+        observer participant, regulators
+        
+        choice Accept: ContractId Participant 
+            with
+                invParticipant: Party
+                invLegalName: LegalName
+                invAddress: Address
+                invOperator: Party
+                invRegulators: [Party]
+
+            controller participant  
+                do
+                    create Participant
+                        with
+                            participant = invParticipant
+                            legalName = invLegalName
+                            address = invAddress
+                            operator = invOperator
+                            regulators = invRegulators
+        choice Reject: ()
+            controller participant
+                do 
+                    return ()
+
+        choice Revoke: ()
+            with  
+
+            controller operator
+                do 
+                    return ()            

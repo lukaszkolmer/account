@@ -1,0 +1,62 @@
+module DvPReqStatus where
+
+import Asset
+
+data SettlementStatus = SETTLEMENT_PENDING | SETTLEMENT_APPROVED | SETTLEMENT_SETTLED | SETTLEMENT_REJECTED 
+    deriving (Eq, Show)
+
+template DvPRequest 
+    with
+        id: Text
+        operator: Party
+        seller: Party
+        buyer: Party
+        regulators: [Party]
+        approver: Party
+        sellerDeliverables: [Asset]
+        buyerDeliverables:[Asset]
+        settlementDate: Optional Time
+        status: SettlementStatus 
+    where
+        signatory operator
+        observer approver
+    
+        key (operator, id): (Party, Text)
+        maintainer key._1
+
+        choice Approve: ContractId DvPRequest 
+            with
+    
+            controller approver 
+                do
+                    assertMsg "Can approve only pending settlements" $ (status == SETTLEMENT_PENDING)
+                    
+                    let newStatus = SETTLEMENT_APPROVED
+                    create this 
+                        with
+                            status = newStatus
+        choice Reject: ()
+            
+             controller approver 
+                do
+                    return ()
+                    
+        choice Settle: ContractId DvPRequest 
+            with
+    
+            controller operator 
+                do
+                    assertMsg "Can't settle an unaproved settlement" $ (status == SETTLEMENT_APPROVED)
+                    let newStatus = SETTLEMENT_SETTLED
+                    timeNow <- getTime
+                
+                    create this with
+                        status = newStatus
+                        settlementDate = Some timeNow
+        choice Close: ()
+            with
+            
+            controller approver 
+                do
+                    assertMsg "Can't close unsettled settlement" $ (status == SETTLEMENT_SETTLED)
+                    return ()

@@ -1,0 +1,47 @@
+module Account where
+
+data AccountType  =  AccountType_MirrorValue | AccountTypeSecurities
+    deriving (Show, Eq)
+
+data AccountKey = 
+     AccountKey with
+        owner: Party
+        provider: Party
+        accountType: AccountType 
+            deriving (Eq, Show)
+            
+template Account
+    with
+        acccountKey: AccountKey
+        operator: Party
+        signatories: [Party]
+        regulators: [Party]
+
+    where
+        signatory signatories
+        observer operator
+
+        key (signatories, acccountKey): ([Party], AccountKey)
+        maintainer key._1
+
+        choice Account_Create: ContractId Account
+            with
+                newAccountKey: AccountKey
+                newOperator: Party
+                newSignatories: [Party]
+                newRegulators: [Party]
+            controller operator 
+                do
+                    create Account
+                        with
+                            acccountKey = newAccountKey
+                            operator = newOperator
+                            signatories = newSignatories
+                            regulators = newRegulators
+
+        choice Account_Close: ()
+            controller operator
+                do
+                    return ()
+        
+

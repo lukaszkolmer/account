@@ -1,0 +1,74 @@
+module IssuerRole where
+
+import RoleIdData
+
+template IssuerRole 
+    with
+        id : IssuerRoleId
+        issuer: Party
+        operator: Party
+        regulators: [Party]
+        issuerServices: IssuerServiceRoleId
+        legalCounsel: LegalCounselRoleId
+        bookRunner: BookRunnerRoleId
+
+    where
+        signatory issuer, operator
+        observer regulators
+    
+        key (operator, id): (Party, IssuerRoleId)
+        maintainer key._1
+
+        choice IssuerRole_Resign: ()
+            controller issuer
+                do 
+                    return ()
+
+        choice IssuerRole_Revoke: ()
+            controller operator
+                do
+                    return ()
+    
+
+template IssuerRoleInvitation 
+    with
+        issuer: Party
+        operator: Party
+        regulators: [Party]
+        issuerServices: Party
+        legalCounsel: Party
+        bookRunner: Party
+    where
+        signatory operator
+        observer regulators
+        
+        choice IssuerRoleInvitation_Accept: ContractId IssuerRole
+            with
+                invIssueId: IssuerRoleId
+                invIssuer: Party
+                invOperator: Party
+                invRegulators: [Party]
+                invIssuerServices: IssuerServiceRoleId
+                invLegalCounsel: LegalCounselRoleId
+                invBookRunner: BookRunnerRoleId
+            controller issuer 
+                do 
+                    create IssuerRole
+                        with
+                            id = invIssueId
+                            issuer = invIssuer
+                            operator = invOperator
+                            regulators = invRegulators
+                            issuerServices = invIssuerServices
+                            legalCounsel = invLegalCounsel
+                            bookRunner = invBookRunner
+        
+        choice IssuerRoleInvitation_Reject: ()
+            controller issuer 
+                do 
+                    return ()
+
+        choice IssueRoleInvitation_Revoke: ()
+            controller operator
+                do
+                    return ()

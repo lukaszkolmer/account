@@ -1,0 +1,257 @@
+module OperatorRole where
+
+import IssuerRole
+import IssuerServiceRole
+import BookRunnerDARole
+import BookRunnerRole
+import SettlementBankRole
+import RegCoRole
+import CSDRole
+import InvestmentManagerDARole
+import InvestmentManagerRole
+import InvestmentManagerSERole
+import LegalCounselRole
+import DA.Set (Set)
+
+template OperatorRole 
+    with
+        operator: Party
+        regulators: [Party]
+    where
+        signatory operator
+        observer regulators
+
+    
+        nonconsuming choice OperatorRole_InviteIssuer : ContractId IssuerRoleInvitation 
+            with
+                invIssuer: Party
+                invOperator: Party
+                invRegulators: [Party]
+                invIssuerServices: Party
+                invLegalCounsel: Party
+                invBookRunner: Party
+
+            controller operator 
+                do 
+                    create IssuerRoleInvitation 
+                        with
+                            issuer = invIssuer
+                            operator = invOperator
+                            regulators = invRegulators
+                            issuerServices = invIssuerServices
+                            legalCounsel = invLegalCounsel
+                            bookRunner = invBookRunner 
+
+        nonconsuming choice OperatorRole_InviteIssuerService: ContractId IssuerServiceRoleInvitation 
+            with
+                invIssuerServices: Party
+                invOperator: Party
+                invRegulators: [Party]
+                invIssuer: Party
+                invCsd: Party
+                    
+            controller operator 
+                do
+                    create IssuerServiceRoleInvitation 
+                        with
+                            issuerServices = invIssuerServices
+                            operator = invOperator
+                            regulators = invRegulators
+                            issuer = invIssuer
+                            csd = invCsd
+        nonconsuming choice OperatorRole_InviteBookRunner: ContractId BookRunnerRoleInvitation 
+            with
+                invBookRunner: Party
+                invOperator: Party
+                invRegulators: [Party]
+                invBookRunnerDA: Party
+                invIssuer: Party
+                invInvestmentManager: Party
+                invInvestmentManagerDA: Party
+                invSettlementBank: Party
+                invCsd: Party
+
+            controller operator
+                do
+                    create BookRunnerRoleInvitation 
+                        with
+                            bookRunner = invBookRunner
+                            operator = invOperator
+                            regulators = invRegulators
+                            bookRunnerDA = invBookRunnerDA
+                            issuer = invIssuer
+                            investmentManager = invInvestmentManager
+                            investmentManagerDA = invInvestmentManagerDA
+                            settlementBank = invSettlementBank
+                            csd = invCsd
+        
+        nonconsuming choice OperatorRole_InviteBookRunnerDA: ContractId BookRunnerDARoleInvitation
+            with
+                invBookRunnerDA: Party
+                invOperator: Party
+                invRegulators: [Party]
+                invBookRunner: Party
+                invCsd: Party
+            
+            controller operator
+                do
+                    create BookRunnerDARoleInvitation
+                        with
+                            bookRunnerDA = invBookRunnerDA
+                            operator = invOperator
+                            regulators = invRegulators
+                            bookRunner = invBookRunner
+                            csd = invCsd
+
+        nonconsuming choice OperatorRole_InviteCsd: ContractId CSDRoleInvitation
+            with
+                invCsd: Party
+                invOperator: Party
+                invRegulators: [Party]
+                invBookRunner: Party
+                invBookRunnerDA: Party
+                invLegalCounsel:Party
+                invRegCo: Party
+                invSettlementBank:Party
+                invInvestmentManager: Party
+                invInvestmentManagerDA: Party
+                invInvestmentManagerSE: Party
+            
+            controller operator
+                do
+                    create CSDRoleInvitation
+                        with
+                            csd = invCsd
+                            operator = invOperator
+                            regulators = invRegulators
+                            bookRunner = invBookRunner
+                            bookRunnerDA = invBookRunnerDA
+                            legalCounsel = invLegalCounsel
+                            regCo = invRegCo
+                            settlementBank = invSettlementBank
+                            investmentManager = invInvestmentManager
+                            investmentManagerDA = invInvestmentManagerDA
+                            investmentManagerSE =  invInvestmentManagerSE
+        
+        nonconsuming choice OperatorRole_InviteRegCo: ContractId RegCoRoleInvitation
+            with
+                invRegCo: Party
+                invOperator: Party
+                invRegulators: [Party]
+                invCsd: Party
+            
+            controller operator
+                do
+                    create RegCoRoleInvitation
+                        with
+                            regCo = invRegCo
+                            operator = invOperator
+                            regulators = invRegulators
+                            csd = invCsd
+
+        nonconsuming choice OperatorRole_InviteInvestmentManager: ContractId InvestmentManagerRoleInvitation
+            with
+                invInvestmentManager: Party
+                invOperator: Party
+                invRegulators: [Party]
+                invBookRunner: Party
+                invCsd: Party
+                invinvestmentManagerDA: Party
+                invInvestmentManagerSE: Set Party
+        
+            controller operator
+                do
+                    create InvestmentManagerRoleInvitation
+                        with
+                            investmentManager = invInvestmentManager
+                            operator = invOperator
+                            regulators = invRegulators
+                            bookRunner = invBookRunner
+                            csd = invCsd
+                            investmentManagerDA = invinvestmentManagerDA
+                            investmentManagerSE = invInvestmentManagerSE
+
+        nonconsuming choice OperatorRole_InviteInvestmentManagerDA: ContractId InvestmentManagerDARoleInvitation
+            with 
+                invInvestmentManagerDA: Party
+                invOperator: Party
+                invRegulators: [Party]
+                invBookRunner: Party
+                invCsd: Party
+                invInvestmentManager: Party
+                invInvestmentManagerSE: Set Party
+            
+            controller operator
+                do 
+                    create InvestmentManagerDARoleInvitation
+                        with
+                            investmentManagerDA = invInvestmentManagerDA
+                            operator = invOperator
+                            regulators = invRegulators
+                            bookRunner = invBookRunner
+                            csd = invCsd
+                            investmentManager = invInvestmentManager
+                            investmentManagerSE = invInvestmentManagerSE    
+
+        nonconsuming choice OperatorRole_InviteInvestmentManagerSE: ContractId InvestmentManagerSERoleInvitation
+            with
+                invInvestmentManagerSE: Party
+                invOperator: Party
+                invRegulators: [Party]
+                invCsd: Party
+                invInvestmentManager: Party
+                invInvestmentManagerDA: Party
+            
+            controller operator
+                do
+                    create InvestmentManagerSERoleInvitation
+                        with
+                            investmentManagerSE = invInvestmentManagerSE
+                            operator = invOperator
+                            regulators = invRegulators
+                            csd = invCsd
+                            investmentManager = invInvestmentManager
+                            investmentManagerDA = invInvestmentManagerDA
+
+        nonconsuming choice OperatorRole_InviteLegalCounsel: ContractId LegalCounselRoleInvitation
+            with
+                invLegalCounsel: Party
+                invOperator: Party
+                invRegulators: [Party]
+                invIssuer: Party
+                invCsd: Party
+
+            controller operator    
+                do
+                    create LegalCounselRoleInvitation
+                        with
+                            legalCounsel = invLegalCounsel
+                            operator = invOperator
+                            regulators = invRegulators
+                            issuer = invIssuer
+                            csd = invCsd
+                          
+        nonconsuming choice OperatorRole_InviteSettlementBank: ContractId SettlementBankRoleInvitation
+            with
+                invSettlementBank: Party
+                invOperator: Party
+                invRegulators: [Party]
+                invBookRunner: Party
+                invInvestmentManagerDA: Party
+                invCsd: Party
+            
+            controller operator
+                do
+                    create SettlementBankRoleInvitation
+                        with
+                            settlementBank = invSettlementBank
+                            operator = invOperator
+                            regulators = invRegulators
+                            bookRunner = invBookRunner
+                            investmentManagerDA = invInvestmentManagerDA
+                            csd = invCsd
+
+        choice OperatorRole_Resign: ()
+            controller operator
+                do
+                    return ()

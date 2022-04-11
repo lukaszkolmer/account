@@ -1,0 +1,98 @@
+module CSDRole where
+
+import RoleIdData
+
+template CSDRole 
+    with
+        id: CSDRoleId
+        csd: Party
+        operator: Party
+        regulators: [Party]
+        bookRunner: BookRunnerRoleId
+        bookRunnerDA: BookRunnerDARoleeId
+        investmentManagerDA: InvestmentManagerDARoleId
+        investmentManager: InvestmentManagerRoleId
+        investmentManagerSE: InvestmentManagerSERoleId
+        legalCounsel: LegalCounselRoleId
+        settlementBank: SettlementBankRoleId
+        regCo: RegCoRoleId
+        issuerService: IssuerServiceRoleId
+    where
+        signatory csd, operator
+        observer regulators
+        
+        key (operator, id): (Party, CSDRoleId)
+        maintainer key._1
+
+        choice CSDRole_Resign: ()
+            controller csd
+                do 
+                    return ()
+
+        choice CSDRole_Revoke: ()
+            controller operator
+                do
+                    return ()
+
+template CSDRoleInvitation 
+    with
+        csd: Party
+        operator: Party
+        regulators: [Party]
+        bookRunner: Party
+        bookRunnerDA: Party
+        legalCounsel:Party
+        regCo: Party
+        settlementBank:Party
+        investmentManager: Party
+        investmentManagerDA: Party
+        investmentManagerSE: Party
+    where
+        signatory operator
+        observer regulators
+        
+        choice CSDRoleInvitation_Accept: ContractId CSDRole
+            with
+                invId: CSDRoleId
+                invCsd: Party
+                invOperator: Party
+                invRegulators: [Party]
+                invIssuerService: IssuerServiceRoleId
+                invLegalCounsel: LegalCounselRoleId
+                invBookRunner: BookRunnerRoleId
+                invBookRunnerDA: BookRunnerDARoleeId
+                invSettlementBank: SettlementBankRoleId
+                invRegCo: RegCoRoleId
+                invInvestmentManagerDA: InvestmentManagerDARoleId
+                invInvestmentManager: InvestmentManagerRoleId
+                invInvestmentManagerSE: InvestmentManagerSERoleId
+            
+                
+                
+            controller csd 
+                do 
+                    create CSDRole
+                        with
+                            id = invId
+                            csd = invCsd
+                            operator = invOperator
+                            regulators = invRegulators
+                            bookRunner = invBookRunner
+                            bookRunnerDA = invBookRunnerDA
+                            investmentManagerDA =  invInvestmentManagerDA
+                            investmentManager =  invInvestmentManager
+                            investmentManagerSE =  invInvestmentManagerSE
+                            legalCounsel = invLegalCounsel
+                            settlementBank = invSettlementBank
+                            regCo = invRegCo
+                            issuerService = invIssuerService
+        
+        choice CSDRoleInvitation_Reject: ()
+            controller csd 
+                do 
+                    return ()
+
+        choice CSDRoleInvitation_Revoke: ()
+            controller operator
+                do
+                    return ()

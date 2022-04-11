@@ -1,0 +1,65 @@
+module RegCoRole where
+
+import RoleIdData
+
+template RegCoRole
+    with
+        id: RegCoRoleId
+        regCo: Party
+        operator: Party
+        regulators: [Party]
+        csd: CSDRoleId
+    where
+        signatory regCo, operator
+        observer regulators
+
+        key (operator, id): (Party, RegCoRoleId)
+        maintainer key._1
+
+        choice RegCoRoleRole_Resign: ()
+            controller regCo 
+                do
+                    return ()
+        
+        choice RegCoRoleRole_Revoke: ()
+            controller operator
+                do
+                    return ()
+
+template RegCoRoleInvitation 
+    with
+        regCo: Party
+        operator: Party
+        regulators: [Party]
+        csd: Party
+    where
+        signatory operator
+        observer regulators
+
+        choice RegCoRoleInvitation_Accept: ContractId RegCoRole
+            with
+                invId: RegCoRoleId
+                invRegCo: Party
+                invOperator: Party
+                invRegulators: [Party]
+                invCsd: CSDRoleId
+
+            controller regCo
+                do
+                    create RegCoRole
+                        with
+                             id = invId
+                             regCo = invRegCo
+                             operator = invOperator
+                             regulators = invRegulators
+                             csd = invCsd
+        
+        choice RegCoRoleInvitation_Reject: ()
+            controller regCo
+                do
+                    return ()
+        
+        choice RegCoRoleInvitation_Revoke: ()
+            controller operator
+                do
+                    return ()

@@ -1,0 +1,69 @@
+module BookRunnerDARole where
+
+import RoleIdData
+
+template BookRunnerDARole
+    with
+        id: BookRunnerDARoleeId
+        bookRunnerDA: Party
+        operator: Party
+        regulators: [Party]
+        csd: CSDRoleId
+        bookRunner: BookRunnerRoleId
+    where
+        signatory bookRunnerDA, operator
+        observer regulators
+
+        key (operator, id): (Party, BookRunnerDARoleeId)
+        maintainer key._1
+
+        choice BookRunnerDARole_Resign: ()
+            controller bookRunnerDA 
+                do
+                    return ()
+        
+        choice BookRunnerDARole_Revoke: ()
+            controller operator
+                do
+                    return ()
+
+template BookRunnerDARoleInvitation
+    with
+        bookRunnerDA: Party
+        operator: Party
+        regulators: [Party]
+        bookRunner: Party
+        csd: Party
+    where
+        signatory operator
+        observer regulators
+    
+        choice BookRunnerDARoleInvitation_Accept: ContractId BookRunnerDARole
+            with
+                invId: BookRunnerDARoleeId
+                invBookRunnerDA: Party
+                invOperator: Party
+                invRegulators: [Party]
+                invCsd: CSDRoleId
+                invBookRunner: BookRunnerRoleId
+
+            controller bookRunnerDA
+                do
+                    create BookRunnerDARole
+                        with
+                            id = invId
+                            bookRunnerDA = invBookRunnerDA
+                            operator = invOperator
+                            regulators = invRegulators
+                            csd = invCsd
+                            bookRunner = invBookRunner
+
+        choice BookRunnerDARoleInvitation_Reject: ()
+            controller bookRunnerDA
+                do
+                    return ()
+        
+        choice BookRunnerDARoleInvitation_Revoke: ()
+            controller operator
+                do
+                    return ()

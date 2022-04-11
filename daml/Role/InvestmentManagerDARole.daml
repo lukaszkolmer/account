@@ -1,0 +1,78 @@
+module InvestmentManagerDARole where
+
+import RoleIdData
+import DA.Set (Set)
+
+template InvestmentManagerDARole 
+    with
+        id: InvestmentManagerDARoleId
+        investmentManagerDA: Party
+        operator: Party
+        regulators: [Party]
+        bookRunner: BookRunnerRoleId
+        csd: CSDRoleId
+        investmentManager: InvestmentManagerRoleId
+        investmentManagerSEs: Set Party
+    where
+        signatory investmentManagerDA, operator
+        observer regulators
+
+        key (operator, id): (Party, InvestmentManagerDARoleId)
+        maintainer key._1
+
+        choice InvestmentManagerDARole_Resign: ()
+            controller investmentManagerDA
+                do 
+                    return ()
+
+        choice InvestmentManagerDARole_Revoke: ()
+            controller operator
+                do
+                    return ()
+
+template InvestmentManagerDARoleInvitation
+    with
+        investmentManagerDA: Party
+        operator: Party
+        regulators: [Party]
+        bookRunner: Party
+        csd: Party
+        investmentManager: Party
+        investmentManagerSE: Set Party
+    where
+        signatory operator
+        observer regulators
+
+        choice InvestmentManagerDARole_Accept: ContractId InvestmentManagerDARole
+            with
+                invId: InvestmentManagerDARoleId
+                invInvestmentManagerDA: Party
+                invOperator: Party
+                invRegulators: [Party]
+                invBookRunner: BookRunnerRoleId
+                invCsd: CSDRoleId
+                invInvestmentManager: InvestmentManagerRoleId
+                invInvestmentManagerSEs: Set Party
+            
+            controller investmentManagerDA 
+                do 
+                    create InvestmentManagerDARole
+                        with
+                            id = invId
+                            investmentManagerDA = invInvestmentManagerDA
+                            operator = invOperator
+                            regulators = invRegulators
+                            bookRunner = invBookRunner
+                            csd = invCsd
+                            investmentManager = invInvestmentManager
+                            investmentManagerSEs = invInvestmentManagerSEs
+        
+        choice InvestmentManagerDARoleInvitationReject: ()
+            controller investmentManagerDA 
+                do 
+                    return ()
+
+        choice InvestmentManagerDARoleInvitation_Revoke: ()
+            controller operator
+                do
+                    return ()

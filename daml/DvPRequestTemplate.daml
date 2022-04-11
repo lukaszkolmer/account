@@ -1,0 +1,96 @@
+module DvPRequestTemplate where
+
+import Asset
+
+template DvPRequest 
+    with
+        operator: Party
+        seller: Party
+        buyer: Party
+        regulators: [Party]
+        approver: Party
+        sellerDeliverables: [Asset]
+        buyerDeliverables:[Asset]
+    where
+        signatory operator, seller
+    
+        choice Approve: ContractId DvPApproved 
+            with
+                dvpOperator: Party
+                dvpSeller: Party
+                dvpBuyer: Party
+                dvpRegulators: [Party]
+                dvpApprover: Party
+                dvpSellerDeliverables: [Asset]
+                dvpBuyerDeliverables:[Asset] 
+
+            controller dvpApprover 
+                do
+                    create DvPApproved 
+                        with
+                            operator = dvpOperator
+                            seller = dvpSeller
+                            buyer = dvpBuyer
+                            regulators = dvpRegulators
+                            approver = dvpApprover
+                            sellerDeliverables = dvpSellerDeliverables
+                            buyerDeliverables = dvpBuyerDeliverables
+
+        choice Reject: () 
+             controller approver 
+                do
+                     return ()
+
+template DvPApproved 
+    with
+        operator: Party
+        seller: Party
+        buyer: Party
+        regulators: [Party]
+        approver: Party
+        sellerDeliverables: [Asset]
+        buyerDeliverables:[Asset]
+    where
+        signatory operator, seller
+
+        choice Settle: ContractId DvPSettled 
+           with
+                dvpOperator: Party
+                dvpSeller: Party
+                dvpBuyer: Party
+                dvpRegulators: [Party]
+                dvpApprover: Party
+                dvpSellerDeliverables: [Asset]
+                dvpBuyerDeliverables:[Asset] 
+
+            controller dvpOperator 
+                do
+                    timeNow <- getTime
+                    create DvPSettled 
+                        with
+                            operator = dvpOperator
+                            seller = dvpSeller
+                            buyer = dvpBuyer
+                            regulators = dvpRegulators
+                            approver = dvpApprover
+                            sellerDeliverables = dvpSellerDeliverables
+                            buyerDeliverables = dvpBuyerDeliverables
+                            settlementDate = timeNow
+
+template DvPSettled 
+    with
+        operator: Party
+        seller: Party
+        buyer: Party
+        regulators: [Party]
+        approver: Party
+        sellerDeliverables: [Asset]
+        buyerDeliverables:[Asset]
+        settlementDate: Time
+    where
+        signatory operator, seller
+
+        choice Close: ()
+            controller approver
+                do
+                    return ()

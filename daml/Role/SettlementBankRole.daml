@@ -1,0 +1,75 @@
+module SettlementBankRole where
+
+import RoleIdData
+
+template SettlementBankRole
+    with
+        id: SettlementBankRoleId
+        settlementBank: Party
+        operator: Party
+        regulators: [Party]
+        issuer: IssuerRoleId
+        bookRunner: BookRunnerRoleId
+        investmentManagerDA: InvestmentManagerDARoleId
+        csd: CSDRoleId
+    where
+        signatory settlementBank, operator
+        observer regulators
+
+        key (operator, id): (Party, SettlementBankRoleId)
+        maintainer key._1
+
+        choice SettlementBanklRole_Resign: ()
+            controller settlementBank 
+                do
+                    return ()
+        
+        choice SettlementBanklRole_Revoke: ()
+            controller operator
+                do
+                    return ()
+
+template SettlementBankRoleInvitation
+    with
+        settlementBank: Party
+        operator: Party
+        regulators: [Party]
+        bookRunner: Party
+        investmentManagerDA: Party
+        csd: Party
+    where
+        signatory operator
+        observer regulators
+    
+        choice SettlementBankRoleInvitation_Accept: ContractId SettlementBankRole
+            with
+                invId: SettlementBankRoleId
+                invSettlementBank: Party
+                invOperator: Party
+                invRegulators: [Party]
+                invIssuer: IssuerRoleId
+                invBookRunner: BookRunnerRoleId
+                invInvestmentManagerDA: InvestmentManagerDARoleId
+                invCsd: CSDRoleId
+            controller settlementBank 
+                     do
+                        create SettlementBankRole
+                            with
+                                id = invId
+                                settlementBank = invSettlementBank
+                                operator = invOperator
+                                regulators = invRegulators
+                                issuer = invIssuer
+                                bookRunner = invBookRunner
+                                investmentManagerDA = invInvestmentManagerDA
+                                csd = invCsd
+        
+        choice SettlementBankRoleInvitation_Reject: ()
+            controller settlementBank
+                do
+                    return ()
+        
+        choice SettlementBankRoleInvitation_Revoke: ()
+            controller operator
+                do
+                    return ()

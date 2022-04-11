@@ -1,0 +1,73 @@
+module InvestmentManagerSERole where
+
+import RoleIdData
+
+template InvestmentManagerSERole 
+    with
+        id: InvestmentManagerSERoleId
+        investmentManagerSE: Party
+        operator: Party
+        regulators: [Party]
+        csd: CSDRoleId
+        investmentManager: InvestmentManagerRoleId
+        investmentManagerDA: InvestmentManagerDARoleId
+    where
+        signatory investmentManagerSE, operator
+        observer regulators
+
+        key (operator, id): (Party, InvestmentManagerSERoleId)
+        maintainer key._1
+
+        choice InvestmentManagerSERole_Resign: ()
+            controller investmentManagerSE
+                do 
+                    return ()
+
+        choice InvestmentManagerSERole_Revoke: ()
+            controller operator
+                do
+                    return ()
+
+template InvestmentManagerSERoleInvitation
+    with
+        investmentManagerSE: Party
+        operator: Party
+        regulators: [Party]
+        csd: Party
+        investmentManager: Party
+        investmentManagerDA: Party
+    where
+        signatory operator
+        observer regulators
+
+        choice InvestmentManagerSERole_Accept: ContractId InvestmentManagerSERole
+            with
+                invId: InvestmentManagerSERoleId
+                invInvestmentManagerSE: Party
+                invOperator: Party
+                invRegulators: [Party]
+                invCsd: CSDRoleId
+                invInvestmentManager: InvestmentManagerRoleId
+                invInvestmentManagerDA: InvestmentManagerDARoleId
+            
+            controller investmentManagerSE 
+                do 
+                    create InvestmentManagerSERole
+                        with
+                            id = invId
+                            investmentManagerSE = invInvestmentManagerSE
+                            operator = invOperator
+                            regulators = invRegulators
+                            csd = invCsd
+                            investmentManager = invInvestmentManager
+                            investmentManagerDA = invInvestmentManagerDA
+        
+        choice InvestmentManagerSERoleInvitationReject: ()
+            controller investmentManagerSE 
+                do 
+                    return ()
+
+        choice InvestmentManagerSERoleInvitation_Revoke: ()
+            controller operator
+                do
+                    return ()

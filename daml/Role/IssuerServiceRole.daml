@@ -1,0 +1,68 @@
+module IssuerServiceRole where
+
+import RoleIdData
+
+template IssuerServiceRole
+    with
+        id: IssuerServiceRoleId
+        issuerService: Party
+        operator: Party
+        regulators: [Party]
+        issuer: IssuerRoleId
+        csd: CSDRoleId
+    where
+        signatory issuerService, operator
+        observer regulators
+
+        key (operator, id): (Party, IssuerServiceRoleId)
+        maintainer key._1
+
+        choice IssuerServiceRole_Resign: ()
+            controller issuerService 
+                do
+                    return ()
+        
+        choice IssuerServicesRole_Revoke: ()
+            controller operator
+                do
+                    return ()
+
+template IssuerServiceRoleInvitation
+    with
+        issuerServices: Party
+        operator: Party
+        regulators: [Party]
+        issuer: Party
+        csd: Party
+    where
+        signatory operator
+        observer regulators
+
+        choice IssuerServicesRoleInvitation_Accept: ContractId IssuerServiceRole
+            with
+                invId: IssuerServiceRoleId
+                invIssuerService: Party
+                invOperator: Party
+                invRegulators: [Party]
+                invIssuer: IssuerRoleId
+                invCsd: CSDRoleId
+            controller issuerServices 
+                     do
+                        create IssuerServiceRole
+                            with
+                                id =  invId
+                                issuerService =  invIssuerService
+                                operator = invOperator
+                                regulators = invRegulators
+                                issuer =  invIssuer
+                                csd =  invCsd
+                                
+        choice IssuerServicesRoleInvitation_Reject: ()
+            controller issuerServices
+                do
+                    return ()
+        
+        choice IssuerServicesRoleInvitation_Revoke: ()
+            controller operator
+                do
+                    return ()

@@ -1,0 +1,103 @@
+module Main where
+
+import Daml.Script
+import Account
+import Asset
+import DvPReqStatus
+
+accAndAssetTest : Script()
+dvpRequestStatusTest: Script()
+accAndAssetTest = script do
+  accOwner <- allocatePartyWithHint "Owner" (PartyIdHint "Owner")
+  accOperator <- allocatePartyWithHint "Operator" (PartyIdHint "Operator")
+  accProvider <- allocatePartyWithHint "Provider" (PartyIdHint "Provider")
+  accSignatory1 <- allocatePartyWithHint "Signatory1" (PartyIdHint "Signatory1")
+
+
+  let 
+      accSignatories: [Party] = [accSignatory1]
+      accKey = AccountKey 
+        with
+          owner = accOwner
+          provider = accProvider
+          accountType = AccountType_MirrorValue 
+  let
+    newAsset = Asset 
+      with
+        assetType = AssetType_Cash_Currency
+        quantity = 1.0
+        currency = Some Currency_USD
+  let
+    acc = Account
+      with
+        acccountKey = accKey
+        operator  = accOperator
+        signatories = accSignatories
+        regulators = []
+
+  testAcc <-submit accSignatory1 do 
+    createCmd Account 
+      with
+        acccountKey = accKey
+        operator = accOperator
+        signatories = accSignatories
+        regulators = []
+  
+
+  newAsset <- submit accSignatory1 do
+    
+    createCmd AssetDeposit
+      with
+        account = acc
+        asset  = newAsset
+        observers = []
+
+  return ()
+
+dvpRequestStatusTest = script do
+
+  dvpOperator <- allocatePartyWithHint "Operator" (PartyIdHint "Operator")
+  dvpBuyer <- allocatePartyWithHint "Buyer" (PartyIdHint "Buyer")
+  dvpSeller <- allocatePartyWithHint "Seller" (PartyIdHint "Seller")
+  dvpApprover <- allocatePartyWithHint "Approver" (PartyIdHint "Approver")
+
+  let
+    sellerAsset = Asset 
+      with
+        assetType = AssetType_Bond
+        quantity = 1.0
+        currency = None
+
+    buyerAsset = Asset 
+      with
+        assetType = AssetType_Cash_Currency
+        quantity = 15.0
+        currency = Some Currency_USD
+   
+    dvpSellerDeliverables: [Asset] = [sellerAsset]
+    dvpBuyerDeliverables: [Asset] = [buyerAsset]
+
+  request <-submit dvpOperator do 
+    createCmd DvPRequest 
+      with
+        id = "1"
+        operator = dvpOperator
+        seller = dvpSeller 
+        buyer = dvpBuyer
+        regulators = []
+        approver = dvpApprover 
+        sellerDeliverables =  dvpSellerDeliverables
+        buyerDeliverables = dvpBuyerDeliverables
+        settlementDate = None
+        status = SETTLEMENT_PENDING
+
+  submit dvpApprover do  
+    exerciseByKeyCmd @DvPRequest (dvpOperator, "1") Approve 
+
+  submit dvpOperator do  
+    exerciseByKeyCmd @DvPRequest (dvpOperator, "1") Settle 
+
+  submit dvpApprover do  
+    exerciseByKeyCmd @DvPRequest (dvpOperator, "1") Close 
+
+  return ()

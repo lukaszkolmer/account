@@ -1,0 +1,86 @@
+module BookRunnerRole where
+
+import RoleIdData
+
+template BookRunnerRole
+    with
+        id: BookRunnerRoleId
+        bookRunner: Party
+        operator: Party
+        regulators: [Party]
+        bookRunnerDA: BookRunnerDARoleeId
+        issuer: IssuerRoleId
+        investmentManager: InvestmentManagerRoleId
+        investmentManagerDA: InvestmentManagerDARoleId
+        settlementBank: SettlementBankRoleId
+        csd: CSDRoleId
+    where
+        signatory bookRunner, operator
+        observer regulators
+
+        key (operator, id): (Party, BookRunnerRoleId)
+        maintainer key._1
+
+        choice BookRunnerRole_Resign: ()
+            controller bookRunner 
+                do
+                    return ()
+        
+        choice BookRunnerRole_Revoke: ()
+            controller operator
+                do
+                    return ()
+
+template BookRunnerRoleInvitation
+    with
+        bookRunner: Party
+        operator: Party
+        regulators: [Party]
+        bookRunnerDA: Party
+        issuer: Party
+        investmentManager: Party
+        investmentManagerDA: Party
+        settlementBank: Party
+        csd: Party
+    where
+        signatory operator
+        observer regulators
+
+        choice BookRunnerRoleInvitation_Accept: ContractId BookRunnerRole
+            with
+                invId: BookRunnerRoleId
+                invBookRunner: Party
+                invOperator: Party
+                invBookRunnerDA: BookRunnerDARoleeId
+                invRegulators: [Party]
+                invIssuer: IssuerRoleId
+                invInvestmentManager: InvestmentManagerRoleId
+                invInvestmentManagerDA: InvestmentManagerDARoleId
+                invSettlementBank: SettlementBankRoleId
+                invCsd: CSDRoleId
+
+
+            controller bookRunner
+                do
+                    create BookRunnerRole
+                        with
+                            id = invId
+                            bookRunner = invBookRunner
+                            operator = invOperator
+                            regulators = invRegulators
+                            bookRunnerDA = invBookRunnerDA
+                            issuer = invIssuer
+                            investmentManager = invInvestmentManager
+                            investmentManagerDA = invInvestmentManagerDA
+                            settlementBank = invSettlementBank
+                            csd = invCsd
+        
+        choice BookRunnerRoleInvitation_Reject: ()
+            controller bookRunner
+                do
+                    return ()
+        
+        choice BookRunnerRoleInvitation_Revoke: ()
+            controller operator
+                do
+                    return ()
